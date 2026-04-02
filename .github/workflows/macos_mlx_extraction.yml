@@ -1,0 +1,46 @@
+name: macos-mlx-extraction
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-experiments:
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Cache MLX/HF model files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/Library/Caches/huggingface
+          key: ${{ runner.os }}-mlx-hf-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run extraction experiments
+        run: python run_all.py
+
+      - name: Upload results artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extraction-results
+          path: |
+            results/*.csv
+            results/plots/*.png
+            results/cache/*.npy
