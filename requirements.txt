@@ -1,0 +1,7 @@
+mlx==0.15.2
+mlx-lm==0.18.1
+numpy==1.26.4
+pandas==2.2.2
+matplotlib==3.9.0
+scipy==1.13.1
+tqdm==4.66.4
