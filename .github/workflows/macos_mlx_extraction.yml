@@ -1,0 +1,54 @@
+name: macos-mlx-extraction
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  run-day1-experiments:
+    runs-on: macos-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache HF and MLX model downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/Library/Caches/mlx
+          key: ${{ runner.os }}-mlx-qwen2-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-mlx-qwen2-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run full Day 1 pipeline
+        run: |
+          python run_all.py --output-dir results
+
+      - name: Upload CSV summaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: day1-csv-summaries
+          path: |
+            results/*.csv
+
+      - name: Upload plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: day1-plots
+          path: |
+            results/*_vs_budget.png
